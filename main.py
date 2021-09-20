@@ -15,27 +15,67 @@ the_cursor=db.cursor()
 # create endpoints
 app =Flask(__name__)
 # show customer list
-@app.route("/",methods=["GET","POST"])
-@app.route("/customers",methods=["GET","POST"])
+@app.route("/",methods=["GET","POST","delete","get","put"])
+@app.route("/customers",methods=["GET","POST","delete","get","put"])
 def add_customers():
+    customers_list=[]
     if  request.method=="POST":
         data=request.form
         name=data["name"]
         the_cursor.execute("insert into customer(name) values(%s)",(name,))
         db.commit()
         # the_cursor.close()
-        # print the db content
+
+    elif request.method=="put":
+        data = request.form
+        updatedname = data["updatedname"]
+        oldname = data["oldname"]
+        the_cursor.execute("UPDATE customer set name = %s where name = %s", (updatedname,oldname,))
+        db.commit()
+        print(update,oldname)
+
+    elif request.method == "delete":
+        data = request.form
+        name = data["name"]
+        the_cursor.execute("delete from customer where name = %s", (name,))
+        db.commit()
+
+    elif request.method == "get":
+        data = request.form
+        name = data["name"]
+        the_cursor.execute("select from customer where name = %s",(name,))
+        customers_list = the_cursor.fetchall()
+
+
+    if request.method != "get":
+        # select the db content
         the_cursor.execute("select * from customer")
-        customers_list=the_cursor.fetchall()
+        customers_list = the_cursor.fetchall()
+
         # read from an html file to display the webpage
     return render_template("customers.html",customers_list=customers_list)
 
 
 # add a customer
-@app.route("/customers/add",methods=["GET","POST"])
-def func():
+@app.route("/customers/add",methods=["GET","POST","delete","get","put"])
+def add():
     # read from an html file to display the webpage
     return render_template("add_customer.html")
+
+@app.route("/customers/update",methods=["GET","POST","delete","get","put"])
+def update():
+    # read from an html file to display the webpage
+    return render_template("update_customer.html")
+
+@app.route("/customers/delete",methods=["GET","POST","delete","get","put"])
+def delete():
+    # read from an html file to display the webpage
+    return render_template("delete_customer.html")
+
+@app.route("/customers/get",methods=["GET","POST","delete","get","put"])
+def get():
+    # read from an html file to display the webpage
+    return render_template("get_customer.html")
 
 # run in debug mode
 if __name__ =="__main__":
